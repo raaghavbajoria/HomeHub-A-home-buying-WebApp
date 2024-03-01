@@ -59,6 +59,12 @@ export const getListings = async (req, res, next) => {
   try {
     const limit = parseInt(req.query.limit) || 9;
     const startIndex = parseInt(req.query.startIndex) || 0;
+    const MinPrice = req.query.MinPrice || 0;
+    const MaxPrice = req.query.MaxPrice || 100000000;
+    const MinBed = req.query.MinBed || 0;
+    const MaxBed = req.query.MaxBed || 100;
+    const searchTerm = req.query.searchTerm || '';
+    const location = req.query.location || '';
     let offer = req.query.offer;
 
     if (offer === undefined || offer === 'false') {
@@ -82,8 +88,7 @@ export const getListings = async (req, res, next) => {
     if (type === undefined || type === 'all') {
       type = { $in: ['sale', 'rent'] };
     }
-
-    const searchTerm = req.query.searchTerm || '';
+    //const bath = req.query.bath || '';
 
     const sort = req.query.sort || 'createdAt';
 
@@ -91,10 +96,14 @@ export const getListings = async (req, res, next) => {
 
     const listings = await Listing.find({
       name: { $regex: searchTerm, $options: 'i' },
+      address: { $regex: location, $options: 'i' },
+      // bathroom: bath,
       offer,
       furnished,
       parking,
       type,
+      regularPrice: { $gte: MinPrice, $lte: MaxPrice },
+      bedrooms: { $gte: MinBed, $lte: MaxBed },
     })
       .sort({ [sort]: order })
       .limit(limit)
